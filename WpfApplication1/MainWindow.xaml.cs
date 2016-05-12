@@ -84,6 +84,7 @@ namespace WpfApplication1
                 
 
             }
+            RenderOptions.SetBitmapScalingMode(image.Source, BitmapScalingMode.NearestNeighbor);
         }
 
         private void Zapisz_Click(object sender, RoutedEventArgs e)
@@ -213,25 +214,8 @@ namespace WpfApplication1
 
         private void Szarosc_Click(object sender, RoutedEventArgs e)
         {
-            FormatConvertedBitmap format = new FormatConvertedBitmap();
-            format.BeginInit();
-            format.Source = bmpSource;
-            format.DestinationFormat = PixelFormats.Gray8;
-            format.EndInit();
-            bmpSource = format;
-            image.Source = format;
-            using (MemoryStream ms1 = new MemoryStream())
-            {
-                PngBitmapEncoder encoder = new PngBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create((BitmapSource)image.Source));
-                encoder.Save(ms1);
-
-                using (Bitmap bmp = new Bitmap(ms1))
-                {
-                    bmpOut = new Bitmap(bmp);
-           
-                }
-            }
+            bmpOut = ToGray(bmpOut);
+            image.Source = BitmapToImage(bmpOut);
         }
 
         #endregion
@@ -387,33 +371,34 @@ namespace WpfApplication1
 
 
         #region Scienianie
-        private void scienianie_Click(object sender, RoutedEventArgs e)
+      private void scienianie_Click(object sender, RoutedEventArgs e)
         {
+            /* 
+                  FormatConvertedBitmap format = new FormatConvertedBitmap();
+                   format.BeginInit();
+                   format.Source = bmpSource;
+                   format.DestinationFormat = PixelFormats.Gray8;
+                   format.EndInit();
+                   bmpSource = format;
+                   image.Source = format;
+                   using (MemoryStream ms1 = new MemoryStream())
+                   {
+                       PngBitmapEncoder encoder = new PngBitmapEncoder();
+                       encoder.Frames.Add(BitmapFrame.Create((BitmapSource)image.Source));
+                       encoder.Save(ms1);
 
-                 FormatConvertedBitmap format = new FormatConvertedBitmap();
-                  format.BeginInit();
-                  format.Source = bmpSource;
-                  format.DestinationFormat = PixelFormats.Gray8;
-                  format.EndInit();
-                  bmpSource = format;
-                  image.Source = format;
-                  using (MemoryStream ms1 = new MemoryStream())
-                  {
-                      PngBitmapEncoder encoder = new PngBitmapEncoder();
-                      encoder.Frames.Add(BitmapFrame.Create((BitmapSource)image.Source));
-                      encoder.Save(ms1);
+                       using (Bitmap bmp = new Bitmap(ms1))
+                       {
+                           bmpOut = new Bitmap(bmp);
 
-                      using (Bitmap bmp = new Bitmap(ms1))
-                      {
-                          bmpOut = new Bitmap(bmp);
-
-                      }
-                  }
+                       }
+                   }
+       */
             System.Drawing.Rectangle rect = new System.Drawing.Rectangle(0, 0, bmpOut.Width, bmpOut.Height);
             System.Drawing.Imaging.BitmapData bmpData = bmpOut.LockBits(rect, ImageLockMode.ReadWrite, System.Drawing.Imaging.PixelFormat.Format8bppIndexed);
             pixelValues = new byte[Math.Abs(bmpData.Stride) * bmpOut.Height];
             Marshal.Copy(bmpData.Scan0, pixelValues, 0, pixelValues.Length);
-
+           
             int height = bmpSource.PixelHeight;
             int width = bmpSource.PixelWidth;
 
@@ -563,6 +548,7 @@ namespace WpfApplication1
                 }
                 else skeleton[x] = 255;
             }
+         
             Marshal.Copy(skeleton, 0, bmpData.Scan0, skeleton.Length);
             bmpOut.UnlockBits(bmpData);
             image.Source = BitmapToImage(bmpOut);
