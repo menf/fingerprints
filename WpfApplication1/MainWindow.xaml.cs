@@ -22,7 +22,7 @@ namespace WpfApplication1
         
         public static Bitmap bmpOut = null;
         private static Bitmap bmpGray = null;
-    
+        System.Windows.Point? lastCenterPositionOnTarget;
         private static int gray = 0;
         BitmapSource bmpSource = null;
         byte[] pixelValues;
@@ -169,7 +169,22 @@ namespace WpfApplication1
 
         #endregion
 
+      #region Zoom
+      private void zoom_slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+      {
 
+          if (bmpOut != null)
+          {
+
+              scaleTransform.ScaleX = e.NewValue;
+              scaleTransform.ScaleY = e.NewValue;
+
+              var centerOfViewport = new System.Windows.Point((int)(scrollViewer.ViewportWidth / 2),
+                                               (int)(scrollViewer.ViewportHeight / 2));
+              lastCenterPositionOnTarget = scrollViewer.TranslatePoint(centerOfViewport, ImageGrid);
+          }
+      }
+      #endregion
   
 
         #region Szarosc
@@ -199,7 +214,7 @@ namespace WpfApplication1
 
             //set the color matrix attribute
             attributes.SetColorMatrix(colorMatrix);
-
+            
             //draw the original image on the new image
             //using the grayscale color matrix
             
@@ -302,10 +317,7 @@ namespace WpfApplication1
 
             if (bmpOut != null)
             {
-                if (gray == 0)
-                {
-                    bmpOut = ToGray(bmpOut);
-                }
+
 
                 int a = OtsuThreshold();
                 byte[] LUT = new byte[256];
@@ -326,10 +338,10 @@ namespace WpfApplication1
                 Marshal.Copy(pixelValues, 0, bmpData.Scan0, pixelValues.Length);
                 bitmap.UnlockBits(bmpData);
                 image.Source = BitmapToImage(bitmap);
-
+            }
 
             }
-        }
+        
         #endregion
 
         #region Ręcznie
@@ -373,27 +385,8 @@ namespace WpfApplication1
         #region Scienianie
       private void scienianie_Click(object sender, RoutedEventArgs e)
         {
-            /* 
-                  FormatConvertedBitmap format = new FormatConvertedBitmap();
-                   format.BeginInit();
-                   format.Source = bmpSource;
-                   format.DestinationFormat = PixelFormats.Gray8;
-                   format.EndInit();
-                   bmpSource = format;
-                   image.Source = format;
-                   using (MemoryStream ms1 = new MemoryStream())
-                   {
-                       PngBitmapEncoder encoder = new PngBitmapEncoder();
-                       encoder.Frames.Add(BitmapFrame.Create((BitmapSource)image.Source));
-                       encoder.Save(ms1);
-
-                       using (Bitmap bmp = new Bitmap(ms1))
-                       {
-                           bmpOut = new Bitmap(bmp);
-
-                       }
-                   }
-       */
+            bmpOut = ToGray(bmpOut);
+            image.Source = BitmapToImage(bmpOut);
             System.Drawing.Rectangle rect = new System.Drawing.Rectangle(0, 0, bmpOut.Width, bmpOut.Height);
             System.Drawing.Imaging.BitmapData bmpData = bmpOut.LockBits(rect, ImageLockMode.ReadWrite, System.Drawing.Imaging.PixelFormat.Format8bppIndexed);
             pixelValues = new byte[Math.Abs(bmpData.Stride) * bmpOut.Height];
@@ -406,7 +399,7 @@ namespace WpfApplication1
 
 
            skeleton = new byte[pixelValues.Length];
-            for (int x = 0; x < width * height; x++)
+           for (int x = 0; x < skeleton.Length; x++)
             {
 
                 if (pixelValues[x] == 0)
@@ -454,7 +447,7 @@ namespace WpfApplication1
           
             
             
-                for (int x = width; x < (width * height) - width; x++)
+                for (int x = width; x < (width * height) ; x++)
                 {
                     if (skeleton[x] == 4)
                         skeleton[x] = 0;
@@ -526,7 +519,7 @@ namespace WpfApplication1
             }
 
             //etap 8
-            for (int x = 0; x < width * height; x++)
+            for (int x = 0; x < skeleton.Length; x++)
             {
 
                 if (skeleton[x] != 0)
@@ -538,50 +531,137 @@ namespace WpfApplication1
 
 
         }
-        
-            for (int x = 0; x < width * height; x++)
-            {
-
-                if (skeleton[x] == 1 )
+           
+                for (int x = 0; x < skeleton.Length; x++)
                 {
-                    skeleton[x] = 0;
+
+                    if (skeleton[x] == 1 )
+                    {
+                        skeleton[x] = 0;
+                    }
+                    else skeleton[x] = 255;
                 }
-                else skeleton[x] = 255;
-            }
-         
+   
             Marshal.Copy(skeleton, 0, bmpData.Scan0, skeleton.Length);
             bmpOut.UnlockBits(bmpData);
             image.Source = BitmapToImage(bmpOut);
             bmpSource = (BitmapSource)image.Source;
-
-
-
-           
-
-            /* image.Source = BitmapToImage(bmpOut);
-             using (MemoryStream ms = new MemoryStream())
-             {
-                 PngBitmapEncoder encoder = new PngBitmapEncoder();
-                 encoder.Frames.Add(BitmapFrame.Create((BitmapSource)image.Source));
-                 encoder.Save(ms);
-
-                 using (Bitmap bmp = new Bitmap(ms))
-                 {
-                     bmpOut = new Bitmap(bmp);
-                 }
-
-             }
-             */
-            /* System.Windows.Media.PixelFormat format = new System.Windows.Media.PixelFormat();
-             format = PixelFormats.Gray8;
-
-             BitmapPalette paleta = new BitmapPalette(bmpSource, 256);
-             double ppiX = 300.0;
-             double ppiY = 600.0; 
-
-           image.Source = BitmapSource.Create(width, height, ppiX, ppiY, format, paleta, skeleton, width);
-             */
+          
+     
+      
+          
         }
+        #endregion
+
+
+        #region Minucje
+      private void minucje_Click(object sender, RoutedEventArgs e)
+      {
+
+          System.Drawing.Rectangle rect = new System.Drawing.Rectangle(0, 0, bmpOut.Width, bmpOut.Height);
+          System.Drawing.Imaging.BitmapData bmpData = bmpOut.LockBits(rect, ImageLockMode.ReadWrite, System.Drawing.Imaging.PixelFormat.Format8bppIndexed);
+          pixelValues = new byte[Math.Abs(bmpOut.Width) * bmpOut.Height];
+          Marshal.Copy(bmpData.Scan0, pixelValues, 0, pixelValues.Length);
+
+          int height = bmpSource.PixelHeight;
+          int width = bmpSource.PixelWidth;
+
+          skeleton = new byte[pixelValues.Length];
+          for (int x = 0; x < width * height; x++)
+          {
+
+              if (pixelValues[x] == 0)
+              {
+                  skeleton[x] = 1;
+              }
+              else skeleton[x] = 0;
+          }
+
+          //ramka 3x3
+          for (int x = width + 1; x < (width * height) - width - 1; x++)
+          {
+
+
+              if (skeleton[x] == 1)
+              {
+                  int il = 0;
+                  int il5 = 0;
+
+                  if (skeleton[x - width - 1] == 1 || skeleton[x - width - 1] == 2) il++;
+                  if (skeleton[x - width] == 1 || skeleton[x - width] == 2) il++;
+                  if (skeleton[x - width + 1] == 1 || skeleton[x - width + 1] == 2) il++;
+                  if (skeleton[x - 1] == 1 || skeleton[x - 1] == 2) il++;
+                  if (skeleton[x + 1] == 1 || skeleton[x + 1] == 2) il++;
+                  if (skeleton[x + width - 1] == 1 || skeleton[x + width - 1] == 2) il++;
+                  if (skeleton[x + width] == 1 || skeleton[x + width] == 2) il++;
+                  if (skeleton[x + width + 1] == 1 || skeleton[x + width + 1] == 2) il++;
+
+                  if (il == 3)
+                  {
+                      //ramka 5x5
+                      if (skeleton[x - 2 * width - 2] == 1 || skeleton[x - 2 * width - 2] == 2) il5++;
+                      if (skeleton[x - 2 * width - 1] == 1 || skeleton[x - 2 * width - 1] == 2) il5++;
+                      if (skeleton[x - 2 * width] == 1 || skeleton[x - 2 * width] == 2) il5++;
+                      if (skeleton[x - 2 * width + 1] == 1 || skeleton[x - 2 * width + 1] == 2) il5++;
+                      if (skeleton[x - 2 * width + 2] == 1 || skeleton[x - 2 * width + 2] == 2) il5++;
+
+                      if (skeleton[x - width - 2] == 1 || skeleton[x - width - 2] == 2) il5++;
+                      if (skeleton[x - width + 2] == 1 || skeleton[x - width + 2] == 2) il5++;
+
+                      if (skeleton[x - 2] == 1 || skeleton[x - 2] == 2) il5++;
+                      if (skeleton[x + 2] == 1 || skeleton[x + 2] == 2) il5++;
+
+                      if (skeleton[x + width - 2] == 1 || skeleton[x + width - 2] == 2) il5++;
+                      if (skeleton[x + width + 2] == 1 || skeleton[x + width + 2] == 2) il5++;
+
+                      if (skeleton[x + 2 * width - 2] == 1 || skeleton[x + 2 * width - 2] == 2) il5++;
+                      if (skeleton[x + 2 * width - 1] == 1 || skeleton[x + 2 * width - 1] == 2) il5++;
+                      if (skeleton[x + 2 * width] == 1 || skeleton[x + 2 * width] == 2) il5++;
+                      if (skeleton[x + 2 * width + 1] == 1 || skeleton[x + 2 * width + 1] == 2) il5++;
+                      if (skeleton[x + 2 * width + 2] == 1 || skeleton[x + 2 * width + 2] == 2) il5++;
+
+                      if (il5 == 3)
+                      {
+                          skeleton[x - width - 1] = 2;
+                          skeleton[x - width] = 2;
+                          skeleton[x - width + 1] = 2;
+                          skeleton[x - 1] = 2;
+                          skeleton[x + 1] = 2;
+                          skeleton[x + width - 1] = 2;
+                          skeleton[x + width] = 2;
+                          skeleton[x + width + 1] = 2;
+                      }
+                  }
+
+              }
+
+
+
+          }
+
+          for (int x = 0; x < width * height; x++)
+          {
+
+              if (skeleton[x] == 1)
+              {
+                  skeleton[x] = 0;
+              }
+              else if (skeleton[x] == 2)
+              {
+                  skeleton[x] = 50;
+              }
+              else if (skeleton[x] == 0)
+              {
+                  skeleton[x] = 255;
+              }
+          }
+
+          Marshal.Copy(skeleton, 0, bmpData.Scan0, skeleton.Length);
+          bmpOut.UnlockBits(bmpData);
+          image.Source = BitmapToImage(bmpOut);
+          bmpSource = (BitmapSource)image.Source;
+
+      }
         #endregion
 
     }

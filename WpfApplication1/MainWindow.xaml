@@ -27,10 +27,10 @@
         </Menu>
 
         <!--Binaryzacja-->
-        <Grid x:Name="BinarGrid" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Visible" Grid.Row="1" Grid.Column="0" Height="153">
-            <Border BorderBrush="Black" BorderThickness="1" Margin="0,0,0,-38">
-                <StackPanel Width="Auto" Orientation="Vertical" >
-                    <TextBlock Text="Binaryzacja" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="6"/>
+        <Grid x:Name="BinarGrid" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Visible" Grid.Row="1" Grid.Column="0" Height="273">
+            <Border BorderBrush="Black" BorderThickness="1" Margin="0,0,0,-165">
+                <StackPanel Width="Auto" Orientation="Vertical" Margin="0,0,0,9" >
+                    <TextBlock Text="Narzędzia" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="6"/>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition/>
@@ -40,13 +40,16 @@
                         <TextBox Grid.Column="2" x:Name="Bin_Prog" VerticalAlignment="Center" TextAlignment="Center" Text="55"
                                      HorizontalAlignment="Right" Margin="2" Width="41"/>
                     </Grid>
-                    <Button x:Name="Wyrtton"  Content="Ręcznie" Width="70" HorizontalAlignment="Center" VerticalAlignment="Top" 
+                    <Button x:Name="Wyrtton"  Content="Binaryzacja" Width="70" HorizontalAlignment="Center" VerticalAlignment="Top" 
                                 Click="Progowanie_Click" Margin="5"/>
                     <Button  x:Name="OtsuButton" Content="Otsu" HorizontalAlignment="Center" 
                              Width="70" VerticalAlignment="Top" Margin="2" Click="Otsu_Click"/>
                     <Button  x:Name="Szarosc" Content="Szarość" HorizontalAlignment="Center" 
                              Width="70" VerticalAlignment="Top" Margin="2,8,2,8" Click="Szarosc_Click"/>
-                    <Button Content="scienianie" Margin="5,0" Click="scienianie_Click"/>
+                    <Button Content="Szkieletyzacja" Margin="5,0" Click="scienianie_Click"/>
+                    <Label Content="Zoom" VerticalAlignment="Center" HorizontalAlignment="Center" Focusable="False"/>
+                    <Slider x:Name="zoom_slider" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Vertical" Height="100" ValueChanged="zoom_slider_ValueChanged" TickPlacement="None" Minimum="1" AutoToolTipPlacement="TopLeft"  Margin="0,0,0,10"/>
+                    <Button Content="Minucje" Click="minucje_Click"/>
                 </StackPanel>
             </Border>
         </Grid>
