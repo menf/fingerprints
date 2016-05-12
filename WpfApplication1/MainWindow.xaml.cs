@@ -235,7 +235,7 @@ namespace WpfApplication1
         }
 
         #endregion
-
+        
 
         #region Binaryzacja
 
